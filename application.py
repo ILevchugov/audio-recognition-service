@@ -21,6 +21,8 @@ def index():
             return redirect(request.url)
         if file:
             recognizer = sr.Recognizer()
+            x = AudioSegment.from_file(file.stream)
+            file = x.export(format="wav")
             audioFile = sr.AudioFile(file)
             with audioFile as source:
                 data = recognizer.record(source)
