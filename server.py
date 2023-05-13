@@ -3,10 +3,10 @@ from pydub import AudioSegment
 
 from flask import Flask, render_template, request, redirect
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 
-@app.route("/", methods=["GET", "POST"])
+@application.route("/", methods=["GET", "POST"])
 def index():
     transcript = ""
     if request.method == "POST":
@@ -29,7 +29,7 @@ def index():
     return render_template('index.html', transcript=transcript)
 
 
-@app.route('/recognition/audio/mp3', methods=['POST'])
+@application.route('/recognition/audio/mp3', methods=['POST'])
 def recognise_mp3():
     if request.method == 'POST':
         f = request.files['file']
