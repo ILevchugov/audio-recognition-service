@@ -27,3 +27,14 @@ h1, p, input {
     font-size: 18px;
     width: 500px;
 }
+
+#checkBox {
+    float: left;
+    margin-top: 10px;
+}
+
+#checkBoxText {
+    margin-left: 25px;
+    font-size: 15px;
+    margin-top: 7px;
+}
