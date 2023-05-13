@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <title>Speech Recognition in Python</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}"/>
 </head>
 <body>
 <div id="speechContainer">
     <h1>Upload mp3 file for speech recognition</h1>
-    <form method="post" enctype="multipart/form-data">
+    <form action="/" method="post" enctype="multipart/form-data">
         <input type="file" name="file"/>
+        <br>
+        <input id="cb" type="checkbox" name="rus-lang" style="float: left; margin-top: 5px;>">
+        <div style="margin-left: 25px;">
+            Enable russian language mod
+        </div>
         <br>
         <input type="submit" id="submitButton" value="Transcribe"/>
     </form>
 
     {% if transcript != "" %}
-        <div id="speechTranscriptContainer">
-            <h1>Transcript</h1>
-            <p id="speechText">{{ transcript }}</p>
-        </div>
+    <div id="speechTranscriptContainer">
+        <h1>Transcript</h1>
+        <p id="speechText">{{ transcript }}</p>
+    </div>
     {% endif %}
 </div>
+
 
 </body>
 </html>

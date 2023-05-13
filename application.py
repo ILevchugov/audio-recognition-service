@@ -9,9 +9,9 @@ application = Flask(__name__)
 @application.route("/", methods=["GET", "POST"])
 def index():
     transcript = ""
+    rus_mode = request.form.get('rus-lang', 'off')
     if request.method == "POST":
         print("FORM DATA RECEIVED")
-
         if "file" not in request.files:
             return redirect(request.url)
 
@@ -23,10 +23,13 @@ def index():
             recognizer = sr.Recognizer()
             x = AudioSegment.from_file(file.stream)
             file = x.export(format="wav")
-            audioFile = sr.AudioFile(file)
-            with audioFile as source:
+            audio_file = sr.AudioFile(file)
+            with audio_file as source:
                 data = recognizer.record(source)
-            transcript = recognizer.recognize_google(data)
+            if rus_mode == 'on':
+                transcript = recognizer.recognize_google(data, language="ru-Ru")
+            else:
+                transcript = recognizer.recognize_google(data)
 
     return render_template('index.html', transcript=transcript)
 
