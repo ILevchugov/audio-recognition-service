@@ -1,8 +1,10 @@
+import math
 import os
 
+import numpy as np
 import speech_recognition as sr
 import cv2
-
+from PIL import Image
 from pydub import AudioSegment
 
 from flask import Flask, render_template, request, redirect, send_file, app
