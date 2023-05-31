@@ -28,6 +28,23 @@
     {% endif %}
 </div>
 
+<div id="fileContainer">
+    <h1>Upload jpg document file for cropping</h1>
+    <form action="/img" method="post" enctype="multipart/form-data">
+        <input type="file" name="file"/>
+        <br>
+        <br>
+        <input type="submit" id="submitButtonImg" value="Crop"/>
+    </form>
+
+    {% if cropResult != "" %}
+    <div id="fileCropResultContainer">
+        <h1>CropResult</h1>
+        <img src= "{{cropResult}}" >
+    </div>
+    {% endif %}
+</div>
+
 
 </body>
 </html>

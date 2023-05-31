@@ -1,16 +1,14 @@
-import math
 import os
 
-import numpy as np
 import speech_recognition as sr
 import cv2
-from PIL import Image
 
 from pydub import AudioSegment
 
 from flask import Flask, render_template, request, redirect, send_file, app
 
-UPLOAD_FOLDER = './upload'
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+
 
 application = Flask(__name__)
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -43,6 +41,22 @@ def index():
 
     return render_template('index.html', transcript=transcript)
 
+@application.route("/img", methods=["GET", "POST"])
+def indexImg():
+    if request.method == "POST":
+        print("FORM DATA RECEIVED")
+        if "file" not in request.files:
+            return redirect(request.url)
+
+        file = request.files["file"]
+        path = os.path.join(application.config['UPLOAD_FOLDER'], file.filename)
+        file.save(path)
+        proccesed = image_preprocess("upload/" + file.filename)
+        result = os.path.join(application.config['UPLOAD_FOLDER'], "result.jpg")
+
+
+    return render_template('index.html', cropResult=result)
+
 
 @application.route('/recognition/audio/mp3', methods=['POST'])
 def recognise_mp3():
@@ -70,8 +84,8 @@ def crop_sts():
     path = os.path.join(application.config['UPLOAD_FOLDER'], f.filename)
     f.save(path)
 
-    proccesed = image_preprocess("upload/" + f.filename)
-    return send_file('0.jpg', mimetype='image/gif')
+    proccesed = image_preprocess(os.path.join(application.config['UPLOAD_FOLDER'], f.filename))
+    return send_file(os.path.join(application.config['UPLOAD_FOLDER'], "result.jpg"), mimetype='image/gif')
     # return send_file(proccesed, mimetype='image/gif')
 
 
@@ -109,33 +123,31 @@ def image_preprocess(raw_image):
     cnt = contours[0]
 
     image_copy = img.copy()
-    cv2.drawContours(image=image_copy, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2,
-                     lineType=cv2.LINE_AA)
-
-    cv2.imwrite('output/counters2kek.jpg', image_copy)
 
     # compute the bounding rectangle of the contour
     x, y, w, h = cv2.boundingRect(cnt)
 
     # draw contour
-    img_with_counters = cv2.drawContours(img, [cnt], 0, (0, 255, 255), 2)
+    img_with_counters = cv2.drawContours(image_copy, [cnt], 0, (0, 255, 255), 2)
     cv2.imwrite('output/image_counters1.jpg', img_with_counters)
 
     cropped_images = []
+    max = 0
     for i in range(0, len(contours)):
         area = cv2.contourArea(contours[i])
         print(area)
-        if (area > 35000):
+        if (area > max):
+            max = area
             x, y, w, h = cv2.boundingRect(contours[i])
             cropped_img = img[y:y + h, x:x + w]
             cropped_images.append(cropped_img)
-            img_name = str(i) + ".jpg"
+            img_name = os.path.join(application.config['UPLOAD_FOLDER'], "result.jpg")
             cv2.imwrite(img_name, cropped_img)
 
     # draw the bounding rectangle
-    final_image = cv2.rectangle(img_with_counters, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    #final_image = cv2.rectangle(img_with_counters, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    cv2.imwrite('output/image_counters2.jpg', final_image)
+    #cv2.imwrite('output/image_counters2.jpg', final_image)
 
     return cropped_images[0]
 
