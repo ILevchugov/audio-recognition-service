@@ -1,9 +1,19 @@
+import math
+import os
+
+import numpy as np
 import speech_recognition as sr
+import cv2
+from PIL import Image
+
 from pydub import AudioSegment
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_file, app
+
+UPLOAD_FOLDER = './upload'
 
 application = Flask(__name__)
+application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 @application.route("/", methods=["GET", "POST"])
@@ -50,6 +60,84 @@ def recognise_mp3():
         audio = r.record(source)
     rec = r.recognize_google(audio)
     return rec
+
+
+@application.route('/recognition/sts/jpg/crop', methods=['POST'])
+def crop_sts():
+    if request.method == 'POST':
+        f = request.files['file']
+
+    path = os.path.join(application.config['UPLOAD_FOLDER'], f.filename)
+    f.save(path)
+
+    proccesed = image_preprocess("upload/" + f.filename)
+    return send_file('0.jpg', mimetype='image/gif')
+    # return send_file(proccesed, mimetype='image/gif')
+
+
+def image_preprocess(raw_image):
+    print(raw_image)
+    img = cv2.imread(raw_image)
+    temp = cv2.fastNlMeansDenoising(img, h=7)
+
+    # ksize
+    ksize = (30, 30)
+
+    # Using cv2.blur() method
+    temp = cv2.blur(temp, ksize, cv2.BORDER_DEFAULT)
+    cv2.imwrite('output/blur.jpg', temp)
+
+    image = cv2.cvtColor(temp, cv2.COLOR_BGR2GRAY)
+    T_, thresholded = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    cv2.imwrite('output/thresholded2.jpg', thresholded)
+
+    edges = cv2.Canny(thresholded, 0, 10)
+    cv2.imwrite('output/edges2.jpg', edges)
+
+    # imagem = cv2.cvtColor(thresholded)
+    imagem = ~thresholded
+    cv2.imwrite('output/reversed.jpg', imagem)
+
+    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
+
+    # Applying dilation on the threshold image
+    dilation = cv2.dilate(imagem, rect_kernel, iterations=1)
+    cv2.imwrite('output/dilation.jpg', dilation)
+
+    contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    cnt = contours[0]
+
+    image_copy = img.copy()
+    cv2.drawContours(image=image_copy, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2,
+                     lineType=cv2.LINE_AA)
+
+    cv2.imwrite('output/counters2kek.jpg', image_copy)
+
+    # compute the bounding rectangle of the contour
+    x, y, w, h = cv2.boundingRect(cnt)
+
+    # draw contour
+    img_with_counters = cv2.drawContours(img, [cnt], 0, (0, 255, 255), 2)
+    cv2.imwrite('output/image_counters1.jpg', img_with_counters)
+
+    cropped_images = []
+    for i in range(0, len(contours)):
+        area = cv2.contourArea(contours[i])
+        print(area)
+        if (area > 35000):
+            x, y, w, h = cv2.boundingRect(contours[i])
+            cropped_img = img[y:y + h, x:x + w]
+            cropped_images.append(cropped_img)
+            img_name = str(i) + ".jpg"
+            cv2.imwrite(img_name, cropped_img)
+
+    # draw the bounding rectangle
+    final_image = cv2.rectangle(img_with_counters, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    cv2.imwrite('output/image_counters2.jpg', final_image)
+
+    return cropped_images[0]
 
 
 if __name__ == "__main__":
