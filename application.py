@@ -53,7 +53,7 @@ def indexImg():
         file = request.files["file"]
         path = os.path.join(application.config['UPLOAD_FOLDER'], file.filename)
         file.save(path)
-        proccesed = image_preprocess("upload/" + file.filename)
+        proccesed = image_preprocess(os.path.join(application.config['UPLOAD_FOLDER'], file.filename))
         result = os.path.join(application.config['UPLOAD_FOLDER'], "result.jpg")
 
 
