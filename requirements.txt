@@ -26,7 +26,6 @@ packaging==23.1
 Pillow==9.5.0
 pyclipper==1.3.0.post4
 pydub==0.25.1
-pytesseract==0.3.10
 python-bidi==0.4.2
 PyWavelets==1.4.1
 PyYAML==6.0
